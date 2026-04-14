@@ -1,10 +1,10 @@
 from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
 from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 
-def get_llm(model_id="google/flan-t5-base"):
+def get_llm(model_id="google/flan-t5-small"):
     """
-    Initializes an upgraded CPU-friendly LLM for answer generation.
-    Flan-T5-base improves translation/extraction fidelity while keeping limits.
+    Initializes a highly lightweight and simplistic CPU-friendly LLM.
+    Flan-T5-small ensures maximum speed on lower-end devices while maintaining accuracy.
     """
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForSeq2SeqLM.from_pretrained(
@@ -16,9 +16,9 @@ def get_llm(model_id="google/flan-t5-base"):
         "text2text-generation",
         model=model,
         tokenizer=tokenizer,
-        max_new_tokens=100,
-        do_sample=False, # Lowers memory footprint, disables beam search
-        device=-1 # CPU Mode explicitly enforced
+        max_new_tokens=50,
+        do_sample=False,
+        device=-1 # Forcing CPU
     )
     
     return HuggingFacePipeline(pipeline=pipe)

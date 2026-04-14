@@ -53,7 +53,7 @@ def query_system(index_path, query):
         print("❌ Run ingestion first using --mode ingest")
         return
 
-    retriever = get_retriever(vector_store, k=3)
+    retriever = get_retriever(vector_store, k=5)
     generator = get_llm()
 
     # ✅ NEW lightweight RAG pipeline
@@ -62,8 +62,19 @@ def query_system(index_path, query):
     print(f"\n--- QUERY ---\n{query}\n")
 
     # Run pipeline
-    answer = rag(query)
+    response = rag(query)
 
+    if isinstance(response, dict):
+        answer = response.get("result", response)
+        context_docs = response.get("source_documents", [])
+    else:
+        answer = response
+        context_docs = []
+
+    if context_docs:
+        print("\n--- Retrieved Context ---")
+        print(context_docs[0].page_content.strip())
+        
     print(f"\n--- FINAL ANSWER ---\n{answer}\n")
     print("-" * 60)
 
@@ -90,9 +101,11 @@ if __name__ == "__main__":
     elif args.mode == "demo":
         print("====== DEMO ======")
         queries = [
-            "कः गोवर्धनदासः?",
-            "घण्टाकर्णः कः?",
-            "कालीदासस्य कथा का?"
+            "गोवर्धनदासः शंखनादं किं आनेतुम् आदिशति?",
+            "भोजराज्ञा किं घोषितम्?",
+            "पर्वतस्य शिखरप्रदेशे कः प्रतिवसति इति जनप्रवादः आसीत्?",
+            "यदा देवभक्तस्य शकटस्य चक्रं मार्गे अन्तः गतं, तदा सः कं प्रार्थितवान्?",
+            "यदा कालीदासः पण्डितेन सह निर्गतः, तदा कः ऋतुः आसीत्?"
         ]
         for q in queries:
             query_system(args.index_path, q)

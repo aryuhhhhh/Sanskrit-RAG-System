@@ -1,65 +1,121 @@
 # Sanskrit Document Retrieval-Augmented Generation (RAG) System
 
-A modular, clean, and entirely CPU-efficient Retrieval-Augmented Generation (RAG) framework optimized for small-scale Sanskrit and Indology documents. Built on LangChain framework ensuring well-separated retrieval and generation paths.
+## Project Description
+The Sanskrit Document Retrieval-Augmented Generation (RAG) System is a specialized, CPU-based pipeline designed to intelligently process, retrieve, and answer queries based on Sanskrit text documents. Built to operate entirely offline locally, the system does not require GPUs or external API integrations.
 
-## Project Overview
-
-This architecture builds an information retrieval system that operates seamlessly on local non-GPU consumer hardware while preventing LLM hallucination by rooting answers firmly in indexed source texts.
-
-## Architecture Explanation
-
-1. **Loader (`loader.py`)**: Responsible for mapping unstructured raw files (`.txt`, `.pdf`) from the `data/` directory to structured LangChain Documents.
-2. **Chunker (`chunker.py`)**: Splits massive texts into coherent paragraphs (chunk_size=500). Modifies standard splitting algorithms to additionally recognize the Sanskrit *poorna virama* (`।`) for safer boundary separation.
-3. **Embedder (`embedder.py`)**: Converts semantic meanings into mathematically dense vectors using a lightweight but efficient HuggingFace Sentence Transformer (`all-MiniLM-L6-v2`) limited explicitly to the CPU.
-4. **Vector Store (`vector_store.py`)**: Uses Facebook AI Similarity Search (FAISS) local indices to store document embeddings mapped against their source text geometries.
-5. **Retriever (`retriever.py`)**: Performs scalable vector-proximity searches fetching the semantic top 3 highly relevant paragraphs from the FAISS local database.
-6. **Generator (`generator.py`)**: Evaluates retrieved chunks alongside user questions using an instruction-tuned language model `google/flan-t5-small`.
-7. **RAG Pipeline (`rag_pipeline.py`)**: Chain abstraction to bind retrieval output seamlessly to the generation step.
+## Features
+- Modular pipeline (Loader, Chunker, Embedder, Retriever, Generator)
+- Sanskrit-aware preprocessing (handling "।" and "॥")
+- FAISS-based vector search
+- Lightweight models (MiniLM + Flan-T5-small)
+- Anti-hallucination prompt design
+- Fully CPU-compatible
 
 ## Tech Stack
+- Python
+- LangChain
+- FAISS
+- SentenceTransformers (MiniLM)
+- HuggingFace Transformers (Flan-T5-small)
 
-* **Python 3.10 / 3.11**
-* **LangChain**: High-level abstract coordination layer.
-* **FAISS**: In-memory dense similarity CPU-specific retrieval.
-* **sentence-transformers**: Context embedding (`all-MiniLM-L6-v2`).
-* **HuggingFace Transformers**: Extractive QA and Generation (`google/flan-t5-small`).
-* **PyPDF**: Local processing for Sanskrit texts stored in pdf wrappers.
-
-## Setup Instructions
-
-### Environment Activation
-Create and activate an isolated python environment:
-```bash
-python -m venv venv
-# On Windows
-venv\\Scripts\\activate
-# On Linux/MacOS
-source venv/bin/activate
+## Project Structure
+```text
+RAG_Sanskrit_Arya/
+│
+├── code/
+│   ├── rag_pipeline.py
+│   ├── loader.py
+│   ├── chunker.py
+│   ├── embedder.py
+│   ├── generator.py
+│   └── requirements.txt
+│
+├── data/
+│   └── Rag-docs.txt
+│
+├── report/
+│
+└── README.md
 ```
 
-### Installation
-Ensure that you are running Python 3.10 or 3.11. Install CPU specific libraries defined in the `requirements.txt`:
+## Installation and Setup Instructions
+
+Follow these step-by-step instructions to set up the project on your local machine:
+
+- Clone the repository
+- Navigate to project folder
+- Create virtual environment
+- Activate environment
+- Install dependencies using requirements.txt
+
 ```bash
-pip install -r requirements.txt
+python -m venv venv  
+venv\Scripts\activate   (Windows)  
+pip install -r requirements.txt  
 ```
 
-## How to Run
+## How to Run the Project
+- Navigate to code directory
+- Run the main pipeline file
 
-### Step 1: Ingest Data
-Put your `.pdf` or `.txt` Sanskrit literature into the auto-generated `data/` folder and trigger ingestion:
 ```bash
-python code/main.py --mode ingest
-```
-This routine checks your raw data, translates it to embeddings, builds a fast traversal map matching your filesystem, and writes binary output to `faiss_index/`.
-
-### Step 2: Ask a Question
-Once digestion completes and FAISS indices sit inside `faiss_index/`, you may issue semantic queries seamlessly:
-```bash
-python code/main.py --mode query --query "Who is Hanuman?"
+cd code  
+python rag_pipeline.py  
 ```
 
-## Design Decisions
+- The system loads the vector store
+- Accepts Sanskrit queries
+- Retrieves context
+- Generates final answer
 
-* **Strict CPU constraints:** Prevented out-of-core memory access or expensive GPU allocation by selecting Flan-t5 (~300M parameters).
-* **Decoupled System:** Functions are perfectly split. The vector retriever and knowledge generator are cleanly abstracted into separate `.py` services for extreme predictability.
-* **Self-Contained DB:** Used `FAISS` with local persistence (`load_local`/`save_local`) instead of heavier networked vector environments (e.g., Pinecone/Chroma server) maximizing modularity.
+## Sample Input and Output
+
+====== DEMO ======
+
+Loading vector store...
+
+--- QUERY ---
+गोवर्धनदासः शंखनादं किं आनेतुम् आदिशति?
+
+--- Retrieved Context ---
+"अरे शंखनाद, गच्छापणम्, शर्कराम् आनय ।" इति स्वभृत्यम् शंखनादम् गोवर्धनदासः आदिशति । ततः शंखनादः आपणम् गच्छति, शर्कराम् जीर्णे वस्त्रे न्यस्यति च । तस्मात् जीर्णवस्त्रात् मार्गे एव सर्वापि शर्करा स्त्रवति ।
+
+--- FINAL ANSWER ---
+गोवर्धनदासः शंखनादं शर्कराम् आनेतुम् आदिशति।
+
+------------------------------------------------------------
+
+Loading vector store...
+
+--- QUERY ---
+भोजराज्ञा किं घोषितम्?
+
+--- Retrieved Context ---
+घोषितं कदाचित् भोजराज्ञा, यदि कोऽपि कविः मम दरबारे नूतनं काव्यं पठति तर्हि ददामि तस्मै लक्षरुप्यकाणि इति ।
+
+--- FINAL ANSWER ---
+यदि कोऽपि कविः दरबारे नूतनं काव्यं पठति तर्हि तस्मै लक्षरुप्यकाणि ददामि इति भोजराज्ञा घोषितम्।
+
+------------------------------------------------------------
+
+## How It Works
+- Documents are loaded and split into chunks
+- Chunks are converted into embeddings
+- Stored in FAISS vector database
+- Query is embedded and matched
+- Relevant chunks are passed to LLM
+- LLM generates Sanskrit answer
+
+## Limitations
+- Limited reasoning ability
+- Dependent on dataset
+- Small model constraints
+
+## Future Improvements
+- Better Indic embeddings
+- GPU support
+- Web interface (Streamlit/Gradio)
+- OCR integration
+
+## Author
+- Arya
