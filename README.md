@@ -118,4 +118,4 @@ Loading vector store...
 - OCR integration
 
 ## Author
-- Arya
+- Arya Gonnade
