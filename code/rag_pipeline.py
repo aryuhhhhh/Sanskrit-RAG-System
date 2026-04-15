@@ -1,7 +1,8 @@
 from langchain.chains import RetrievalQA
+#from langchain.chains.retrieval_qa.base import RetrievalQA
 from langchain.prompts import PromptTemplate
 
-def build_rag_pipeline(llm, retriever):
+def build_rag_pipeline(retriever,llm):
     """
     Constructs the end-to-end RAG pipeline isolating retrieval and generation.
     Uses strict prompt engineering to completely halt hallucination and enforce Sanskrit extraction.
