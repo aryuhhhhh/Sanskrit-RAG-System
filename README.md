@@ -98,6 +98,7 @@ This is the recommended way to run the project if local execution faces dependen
 
 
 ## System Architecture
+
 The system follows a standard Retrieval-Augmented Generation (RAG) pipeline:
 
 1. Document Loader → Loads Sanskrit text  
